@@ -15,7 +15,7 @@ data Claim = Claim {claimid, x , y, width, height:: Int}
 
 part1 :: FilePath -> IO [Claim]
 part1 file = do i <- readFile file
-                let claims = rights ((map readClaims . lines) i)
+                let claims = (rights . map readClaims . lines) i
                 return claims
 
 parseInt :: Parser Int
