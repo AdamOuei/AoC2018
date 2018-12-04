@@ -2,26 +2,28 @@ import Data.Set (Set)
 import Data.List
 import qualified Data.Set as Set
 
-checkSum :: FilePath -> IO [String]
+
+alphabetString  = map (:[]) "abcdefghijklmnopqrstuvwxyz"
+checkSum :: FilePath -> IO Int
 checkSum input = 
         do i <- readFile input
            let puzzles = lines i
-           return puzzles
+           let sumWithTwo = sum $ map checkTwo puzzles
+           let sumWithThree = sum $ map checkThree puzzles
+           return (sumWithTwo * sumWithThree)
            
 checkTwo:: String -> Int
-checkTwo string | find [] charArray == 2 = 1
+checkTwo string |   2 `elem` map (isElem charArray) alphabetString = 1
                 | otherwise = 0
     where charArray =  (map (:[]) . sort) string
-          find seen [] = 0
-          find seen (x:xs) | x `elem` seen = 1 + find (x:seen) xs
-                           | otherwise = find (x:seen) xs
+      
+checkThree :: String -> Int
+checkThree string |   3 `elem` map (isElem charArray) alphabetString = 1
+                | otherwise = 0
+    where charArray =  (map (:[]) . sort) string
 
-                                      
-checkThreeChar:: String -> Int
-checkThreeChar string = find charArray
-                 {-| find [] charArray == 3 = 1
-                 | otherwise = 0-}
-    where charArray = (map (:[]) . sort) string
-          find [] = 0
-          find (x:xs) | x == head xs  = 1 + find xs
-                      | otherwise = find xs
+
+isElem :: [String] -> String -> Int
+isElem [] element = 0
+isElem (x:xs) element |  x == element = 1 + isElem xs element
+                      | otherwise = isElem xs element
