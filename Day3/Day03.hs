@@ -53,7 +53,8 @@ readClaims :: String -> Either ParseError Claim
 readClaims = parse parseClaim "stdin"
 
 
-
+readInput :: FilePath -> IO [String]
+readInput file= lines <$> readFile file
 -- Part 2
 getAllClaimTriplets :: [Claim] -> [(Pos,Int)]
 getAllClaimTriplets =  concatMap claimTriplets
