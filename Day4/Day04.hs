@@ -80,6 +80,12 @@ helper entries = let minutes = fmap (fmap minute) (sleepTimes entries)
 
                  where mostCommon   = maximumBy (comparing snd) . M.toList
 
+helper2 :: [Entry] -> Int
+helper2 entries = let minutes = fmap (fmap minute) (sleepTimes entries) 
+                      rates = frequencies minutes
+                      ((id,min),amt) = maximumBy (comparing snd) . M.toList $ rates
+                  in   id * min
+
 
 frequencies :: Ord k => [k] -> M.Map k Int
 frequencies = foldl' (\m x-> M.insertWith (+) x 1 m ) M.empty
@@ -93,3 +99,12 @@ part1 file = do i <- readInput file
                     entries = fromRight [] $ getEntries sortedInput 
                     answer = helper entries
                     in return answer
+
+
+part2 :: FilePath -> IO Int
+part2 file = do i <- readInput file
+                let sortedInput = sort i
+                    entries = fromRight [] $ getEntries sortedInput
+                    answer2 = helper2 entries
+                    in return answer2
+
