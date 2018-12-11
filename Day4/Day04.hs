@@ -2,6 +2,7 @@ import Data.List
 import Data.List.Split
 import Data.Maybe
 import Data.Either
+import Data.Ord(comparing)
 import Control.Applicative ((<|>))
 import Text.Parsec.Char(spaces, digit, char,string)
 import Text.Parsec.String(Parser)
@@ -57,18 +58,38 @@ parseTime = do
 readInput :: FilePath -> IO[String]
 readInput file = lines <$> readFile file
 
-splitAllEntries :: [String] -> [(String,String)]
-splitAllEntries = map (splitAt 12 . drop 6) 
+getEntries :: [String] -> Either ParseError [Entry]
+getEntries  = traverse (parse parseEntry "stdin") 
 
+sleepTimes :: [Entry] -> [(GuardId,Time)]
+sleepTimes = help 0 
+        where help _ [] = []
+              help _ (Entry _ (NewGuard id ): xs) = help id xs
+              help gid (Entry start Sleep : Entry end Wake:xs) = 
+                let (Time mon d h _) = start
+                    more = help gid xs
+                in  [(gid , Time mon d h t) | t <- [minute start.. minute end -1 ]] ++ more
+ 
+helper :: [Entry] -> (GuardId,Int)
+helper entries = let minutes = fmap (fmap minute) (sleepTimes entries) 
+                     mostSleept = frequencies (map fst minutes)
+                     (id,_) = mostCommon mostSleept
+                     minuteSlept = frequencies . map snd . filter ((==id ). fst) $ minutes
+                     (min,_) = mostCommon minuteSlept
+                 in  (id , min)
+
+                 where mostCommon   = maximumBy (comparing snd) . M.toList
+
+
+frequencies :: Ord k => [k] -> M.Map k Int
+frequencies = foldl' (\m x-> M.insertWith (+) x 1 m ) M.empty
 
 splitAllEntries' :: [String] -> [[String]]
 splitAllEntries' = map (split (dropBlanks $ dropDelims $ oneOf " #[]") . drop 6)
 
-part1 :: FilePath -> IO (Either ParseError [Entry])--[String]--(String,String)]
-part1 file = do i <- readInput file 
-                let
-                    allEntries = (sortOn fst . splitAllEntries) i
-                    otherEntries =  (concat . sort . splitAllEntries') i
-                    anotherEntries = traverse (parse parseEntry "stdin") i
-                    in
-                    return anotherEntries 
+part1 :: FilePath -> IO (GuardId,Int)
+part1 file = do i <- readInput file
+                let sortedInput = sort i
+                    entries = fromRight [] $ getEntries sortedInput 
+                    answer = helper entries
+                    in return answer
