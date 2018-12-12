@@ -1,14 +1,8 @@
 import Data.List
+import Data.Ord(comparing)
 import Data.Char
--- import Data.List.Split
 import Data.Maybe
--- import Data.Either
--- import Data.Ord(comparing)
--- import Control.Applicative ((<|>))
--- import Text.Parsec.Char(spaces, digit, char,string)
--- import Text.Parsec.String(Parser)
--- import Text.Parsec(parse, many1,ParseError)
--- import qualified Data.Map.Strict as M
+
 
 
 readInput :: FilePath -> IO[String]
@@ -36,16 +30,21 @@ isOppositePolarity :: Char -> Char -> Bool
 isOppositePolarity x y |  isUpper x && isLower y = toLower x == y
                        | isLower x && isUpper y = x == toLower y
                        | otherwise = False
-
--- deleteFromString :: String->Char -> Char -> String
--- deleteFromString string x y = newerString
---     where newString = delete x string
---           newerString = delete y newString
+buildList :: String -> [String]
+buildList string = map (\x -> removeOneLetter x string) ['a'..'z']
 
 
+removeOneLetter :: Char -> String-> String
+removeOneLetter c = filter (\x -> toLower x /= c  )
+
+doPart2 :: [String] -> Int
+doPart2 = length . minimumBy (comparing length) . map removeAllUnits . buildList . unwords
 
 part1 :: FilePath -> IO Int
 part1 file = do i <- readInput file
                 return $ (length . removeAllUnits . unwords) i
 
+part2 :: FilePath -> IO Int
+part2 file = do i <- readInput file
+                return $ doPart2 i
 
